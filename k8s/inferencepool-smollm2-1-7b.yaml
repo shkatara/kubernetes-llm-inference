@@ -1,0 +1,16 @@
+apiVersion: inference.networking.k8s.io/v1
+kind: InferencePool
+metadata:
+  name: smollm2-1-7b-instruct
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: smollm2-1.7b-instruct
+  targetPorts:
+  - number: 8000
+  endpointPickerRef:
+    name: epp-smollm2-1-7b-instruct
+    port:
+      number: 9002
+    failureMode: FailOpen

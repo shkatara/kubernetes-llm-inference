@@ -1,0 +1,339 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-llm
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  llm-gpu-routing.json: |-
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 1,
+          "panels": [],
+          "title": "Gateway (agentgateway): Routing, Latency & Cloud Fallback",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "unit": "ops" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 0, "y": 1 },
+          "id": 2,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "sum by (gen_ai_request_model, gen_ai_response_model) (rate(agentgateway_gen_ai_client_token_usage_count[2m]))",
+              "legendFormat": "{{gen_ai_request_model}} -> {{gen_ai_response_model}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Completion Rate (Local GPU vs. OpenRouter)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "unit": "s" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 8, "y": 1 },
+          "id": 3,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.50, sum by (le, gen_ai_request_model) (rate(agentgateway_gen_ai_server_time_to_first_token_bucket[2m])))",
+              "legendFormat": "p50 {{gen_ai_request_model}}",
+              "refId": "A"
+            },
+            {
+              "expr": "histogram_quantile(0.95, sum by (le, gen_ai_request_model) (rate(agentgateway_gen_ai_server_time_to_first_token_bucket[2m])))",
+              "legendFormat": "p95 {{gen_ai_request_model}}",
+              "refId": "B"
+            }
+          ],
+          "title": "Time to First Token (TTFT p50 / p95)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "unit": "s" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 16, "y": 1 },
+          "id": 4,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.50, sum by (le, gen_ai_request_model) (rate(agentgateway_gen_ai_server_time_per_output_token_bucket[2m])))",
+              "legendFormat": "p50 {{gen_ai_request_model}}",
+              "refId": "A"
+            },
+            {
+              "expr": "histogram_quantile(0.95, sum by (le, gen_ai_request_model) (rate(agentgateway_gen_ai_server_time_per_output_token_bucket[2m])))",
+              "legendFormat": "p95 {{gen_ai_request_model}}",
+              "refId": "B"
+            }
+          ],
+          "title": "Time per Output Token (TPOT p50 / p95)",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
+          "id": 10,
+          "panels": [],
+          "title": "Endpoint Picker (EPP): Prefix Indexer & Pool State",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "decimals": 0, "unit": "short" },
+            "overrides": []
+          },
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 9 },
+          "id": 11,
+          "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "targets": [
+            {
+              "expr": "inference_pool_ready_pods",
+              "legendFormat": "{{name}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Ready Pods per InferencePool",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "max": 1, "min": 0, "unit": "percentunit" },
+            "overrides": []
+          },
+          "gridPos": { "h": 6, "w": 6, "x": 6, "y": 9 },
+          "id": 12,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "inference_pool_average_kv_cache_utilization",
+              "legendFormat": "{{name}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Pool Average KV Cache Utilization",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "unit": "short" },
+            "overrides": []
+          },
+          "gridPos": { "h": 6, "w": 6, "x": 12, "y": 9 },
+          "id": 13,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "inference_pool_per_pod_queue_size",
+              "legendFormat": "{{name}} / {{model_server_pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "EPP Observed Per-Pod Queue Depth",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "max": 1, "min": 0, "unit": "percentunit" },
+            "overrides": []
+          },
+          "gridPos": { "h": 6, "w": 6, "x": 18, "y": 9 },
+          "id": 14,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.50, sum by (le, job) (rate(inference_extension_prefix_indexer_hit_ratio_bucket[2m])))",
+              "legendFormat": "p50 {{job}}",
+              "refId": "A"
+            }
+          ],
+          "title": "EPP Prefix Indexer Hit Ratio (p50)",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+          "id": 20,
+          "panels": [],
+          "title": "vLLM Model Replicas: Per-GPU KV Prefix Cache & Saturation",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "unit": "short" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 0, "y": 16 },
+          "id": 21,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "vllm:prefix_cache_hits_total",
+              "legendFormat": "{{pod}} ({{model_name}})",
+              "refId": "A"
+            }
+          ],
+          "title": "Cumulative Prefix Cache Hits by Pod (Warm vs. Cold GPU)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "max": 1, "min": 0, "unit": "percentunit" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 8, "y": 16 },
+          "id": 22,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "rate(vllm:prefix_cache_hits_total[2m]) / clamp_min(rate(vllm:prefix_cache_queries_total[2m]), 0.001)",
+              "legendFormat": "{{pod}} ({{model_name}})",
+              "refId": "A"
+            }
+          ],
+          "title": "Per-Pod Prefix Cache Hit Rate (%)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "max": 1, "min": 0, "unit": "percentunit" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 16, "y": 16 },
+          "id": 23,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "vllm:kv_cache_usage_perc",
+              "legendFormat": "KV {{pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Per-Pod vLLM KV Cache Fill (%)",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+          "id": 30,
+          "panels": [],
+          "title": "Physical GPUs (NVIDIA DCGM across 3 T4 Nodes)",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "max": 100, "min": 0, "unit": "percent" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 0, "y": 24 },
+          "id": 31,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "DCGM_FI_DEV_GPU_UTIL",
+              "legendFormat": "{{hostname}} / {{exported_pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "T4 GPU Compute Utilization (%)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "unit": "decmbytes" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 8, "y": 24 },
+          "id": 32,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "DCGM_FI_DEV_FB_USED",
+              "legendFormat": "Used {{hostname}} ({{exported_pod}})",
+              "refId": "A"
+            },
+            {
+              "expr": "DCGM_FI_DEV_FB_FREE",
+              "legendFormat": "Free {{hostname}}",
+              "refId": "B"
+            }
+          ],
+          "title": "T4 Framebuffer VRAM Used / Free (MB)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "$datasource" },
+          "fieldConfig": {
+            "defaults": { "unit": "celsius" },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 8, "x": 16, "y": 24 },
+          "id": 33,
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "DCGM_FI_DEV_GPU_TEMP",
+              "legendFormat": "{{hostname}} / {{exported_pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "T4 GPU Temperature (°C)",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "5s",
+      "schemaVersion": 39,
+      "tags": ["llm", "agentgateway", "epp", "vllm", "gpu"],
+      "templating": {
+        "list": [
+          {
+            "current": {},
+            "hide": 0,
+            "includeAll": false,
+            "label": "Prometheus",
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+          }
+        ]
+      },
+      "time": { "from": "now-15m", "to": "now" },
+      "timezone": "browser",
+      "title": "LLM Inference & GPU Routing",
+      "uid": "llm-gpu-routing",
+      "version": 1
+    }

@@ -1,0 +1,9 @@
+project_id = "<gcp-project-1>"
+worker_project_ids = [
+  "<gcp-project-2>",
+  "<gcp-project-3>",
+]
+region             = "asia-south1"
+zone               = "asia-south1-a"
+spot               = true
+openrouter_api_key = ""

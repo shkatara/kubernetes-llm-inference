@@ -1,0 +1,19 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: pool-failover-health
+  namespace: default
+spec:
+  targetRefs:
+  - group: agentgateway.dev
+    kind: AgentgatewayBackend
+    name: qwen2.5-3b-instruct
+  - group: agentgateway.dev
+    kind: AgentgatewayBackend
+    name: smollm2-1.7b-instruct
+  backend:
+    health:
+      unhealthyCondition: "response.code >= 500 || response.code == 429"
+      eviction:
+        duration: 15s
+        consecutiveFailures: 1

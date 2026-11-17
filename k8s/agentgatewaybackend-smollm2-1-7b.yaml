@@ -1,0 +1,32 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: smollm2-1.7b-instruct
+  namespace: default
+spec:
+  ai:
+    groups:
+    - providers:
+      - name: local-smollm2-1.7b-instruct
+        custom:
+          backendRef:
+            group: inference.networking.k8s.io
+            kind: InferencePool
+            name: smollm2-1-7b-instruct
+          model: smollm2-1.7b-instruct
+          formats:
+          - type: Completions
+            path: /v1/chat/completions
+    - providers:
+      - name: openrouter-fallback
+        openai:
+          model: meta-llama/llama-3.2-3b-instruct
+        host: openrouter.ai
+        port: 443
+        path: /api/v1/chat/completions
+        policies:
+          auth:
+            secretRef:
+              name: openrouter-secret
+          tls:
+            sni: openrouter.ai

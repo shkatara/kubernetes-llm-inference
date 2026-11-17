@@ -1,0 +1,20 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: pool-failover-retry
+  namespace: default
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: models-route
+  traffic:
+    retry:
+      attempts: 1
+      backoff: 200ms
+      codes:
+      - 429
+      - 500
+      - 502
+      - 503
+      - 504
